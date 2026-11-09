@@ -31,6 +31,7 @@ public class OverlayService extends Service {
     private static final String CHANNEL_ID = "vanta_monitor";
     private static final int NOTIFICATION_ID = 1;
     private static volatile boolean running = false;
+    private static final float HOT_TEMP_C = 42f;
 
     private final Handler main = new Handler(Looper.getMainLooper());
     private ScheduledExecutorService executor;
@@ -89,7 +90,17 @@ public class OverlayService extends Service {
         cpuValue.setText(percent(m.cpuPercent));
         gpuValue.setText(percent(m.gpuPercent));
         ramValue.setText(m.ramTotalMb > 0 ? m.ramUsedMb + " / " + m.ramTotalMb + " MB" : "--");
-        tempValue.setText(Float.isNaN(m.tempC) ? "--" : String.format(Locale.US, "%.1f °C", m.tempC));
+        if (Float.isNaN(m.tempC)) {
+            tempValue.setText("--");
+            tempValue.setBackgroundColor(0x00000000);
+            tempValue.setTextColor(0xFFFFFFFF);
+        } else {
+            boolean hot = m.tempC >= HOT_TEMP_C;
+            tempValue.setText(String.format(Locale.US, "%.1f °C%s", m.tempC, hot ? " ⚠" : ""));
+            // Alerta en blanco invertido: encaja con el tema blanco y negro.
+            tempValue.setBackgroundColor(hot ? 0xFFFFFFFF : 0x00000000);
+            tempValue.setTextColor(hot ? 0xFF000000 : 0xFFFFFFFF);
+        }
     }
 
     private static String percent(int value) {
