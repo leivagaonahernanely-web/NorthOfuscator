@@ -17,8 +17,8 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Instalar Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Verificar Android SDK preinstalado
+        run: echo "ANDROID_HOME=$ANDROID_HOME"
 
       - name: Preparar Gradle
         uses: gradle/actions/setup-gradle@v4
