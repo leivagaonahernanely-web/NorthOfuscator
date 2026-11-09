@@ -1,6 +1,7 @@
 package com.vantaoptimized.app;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Typeface;
@@ -86,8 +87,12 @@ public class MainActivity extends Activity {
         boolean canDraw = Settings.canDrawOverlays(this);
         boolean monitorOn = OverlayService.isRunning();
 
-        shizukuStatus.setText(!running ? "No está en ejecución" : granted ? "Listo" : "Falta permiso");
-        shizukuButton.setText(!running ? "Abrir Shizuku" : granted ? "Permiso concedido" : "Conceder permiso");
+        shizukuStatus.setText(!isShizukuInstalled() ? "No instalado"
+                : !running ? "No está en ejecución" : granted ? "Listo" : "Falta permiso");
+        boolean installed = isShizukuInstalled();
+        shizukuButton.setText(!installed ? "Instalar Shizuku"
+                : !running ? "Abrir Shizuku"
+                : granted ? "Permiso concedido" : "Conceder permiso");
         shizukuButton.setEnabled(!granted);
 
         overlayStatus.setText(canDraw ? "Permitido" : "Pendiente");
@@ -130,15 +135,31 @@ public class MainActivity extends Activity {
     // ---------- Acciones ----------
 
     private void onShizukuClick() {
-        if (!SystemSampler.isServiceRunning()) {
+        if (!isShizukuInstalled()) {
+            openShizukuStore();
+        } else if (!SystemSampler.isServiceRunning()) {
             Intent launch = getPackageManager().getLaunchIntentForPackage(SHIZUKU_PACKAGE);
             if (launch != null) {
                 startActivity(launch);
-            } else {
-                toast("Instala Shizuku desde Play Store o GitHub");
             }
         } else {
             SystemSampler.requestPermission();
+        }
+    }
+
+    private boolean isShizukuInstalled() {
+        return getPackageManager().getLaunchIntentForPackage(SHIZUKU_PACKAGE) != null;
+    }
+
+    /** Abre la ficha de Shizuku en la Play Store; el usuario confirma la instalación. */
+    private void openShizukuStore() {
+        Intent market = new Intent(Intent.ACTION_VIEW,
+                Uri.parse("market://details?id=" + SHIZUKU_PACKAGE));
+        try {
+            startActivity(market);
+        } catch (ActivityNotFoundException e) {
+            startActivity(new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("https://play.google.com/store/apps/details?id=" + SHIZUKU_PACKAGE)));
         }
     }
 
