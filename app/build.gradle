@@ -30,4 +30,6 @@ dependencies {
     // Verifica en https://github.com/RikkaApps/Shizuku-API que sea la última versión estable.
     implementation 'dev.rikka.shizuku:api:13.1.5'
     implementation 'dev.rikka.shizuku:provider:13.1.5'
+    // Verifica la última versión en developers.google.com/admob/android/quick-start
+    implementation 'com.google.android.gms:play-services-ads:23.6.0'
 }

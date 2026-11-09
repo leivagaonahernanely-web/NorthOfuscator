@@ -1,5 +1,10 @@
 package com.vantaoptimized.app;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -32,6 +37,10 @@ public class MainActivity extends Activity {
     private static final int LIGHT_GRAY = 0xFFD0D0D0;
     private static final String SHIZUKU_PACKAGE = "moe.shizuku.privileged.api";
     private static final float FPS_SCALE = 120f;
+    // ID de prueba de banner de AdMob. Reemplázalo por el tuyo antes de publicar.
+    private static final String AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111";
+
+    private AdView adView;
 
     private final SystemSampler sampler = new SystemSampler();
     private ScheduledExecutorService executor;
@@ -54,6 +63,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        MobileAds.initialize(this, status -> { });
         setContentView(buildUi());
     }
 
@@ -64,6 +74,14 @@ public class MainActivity extends Activity {
             executor = Executors.newSingleThreadScheduledExecutor();
             executor.scheduleAtFixedRate(this::poll, 0, 1, TimeUnit.SECONDS);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (adView != null) {
+            adView.destroy();
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -243,7 +261,19 @@ public class MainActivity extends Activity {
         scroll.setBackground(gradient(new int[]{BLACK, DARK, BLACK},
                 GradientDrawable.Orientation.TOP_BOTTOM, 0));
         scroll.addView(root);
-        return scroll;
+
+        LinearLayout container = column();
+        container.setBackgroundColor(BLACK);
+        container.addView(scroll, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+
+        adView = new AdView(this);
+        adView.setAdUnitId(AD_UNIT_ID);
+        adView.setAdSize(AdSize.BANNER);
+        container.addView(adView, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        adView.loadAd(new AdRequest.Builder().build());
+        return container;
     }
 
     private LinearLayout card(String title) {
